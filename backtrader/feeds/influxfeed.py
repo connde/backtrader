@@ -50,14 +50,14 @@ class InfluxDB(feed.DataBase):
         ('username', None),
         ('password', None),
         ('database', None),
-        ('timeframe', bt.TimeFrame.Days),
+        ('dataname', None),
+        ('timeframe', bt.TimeFrame.Minutes),
         ('startdate', None),
-        ('high', 'high_p'),
-        ('low', 'low_p'),
-        ('open', 'open_p'),
-        ('close', 'close_p'),
-        ('volume', 'volume'),
-        ('ointerest', 'oi'),
+        ('high', 'high'),
+        ('low', 'low'),
+        ('open', 'open'),
+        ('close', 'close'),
+        ('volume', 'volume')
     )
 
     def start(self):
@@ -81,13 +81,13 @@ class InfluxDB(feed.DataBase):
         # to have the database skip them and not the internal code
         qstr = ('SELECT mean("{open_f}") AS "open", mean("{high_f}") AS "high", '
                 'mean("{low_f}") AS "low", mean("{close_f}") AS "close", '
-                'mean("{vol_f}") AS "volume", mean("{oi_f}") AS "openinterest" '
+                'mean("{vol_f}") AS "volume" '
                 'FROM "{dataname}" '
                 'WHERE time {begin} '
                 'GROUP BY time({timeframe}) fill(none)').format(
                     open_f=self.p.open, high_f=self.p.high,
                     low_f=self.p.low, close_f=self.p.close,
-                    vol_f=self.p.volume, oi_f=self.p.ointerest,
+                    vol_f=self.p.volume,
                     timeframe=tf, begin=st, dataname=self.p.dataname)
 
         try:

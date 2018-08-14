@@ -53,6 +53,7 @@ class InfluxDB(feed.DataBase):
         ('dataname', None),
         ('timeframe', bt.TimeFrame.Minutes),
         ('startdate', None),
+        ('enddate', None),
         ('high', 'high'),
         ('low', 'low'),
         ('open', 'open'),
@@ -77,18 +78,23 @@ class InfluxDB(feed.DataBase):
         else:
             st = '>= \'%s\'' % self.p.startdate
 
+        if not self.p.enddate:
+            et = '<= now()'
+        else:
+            et = '<= \'%s\'' % self.p.enddate
+
         # The query could already consider parameters like fromdate and todate
         # to have the database skip them and not the internal code
         qstr = ('SELECT mean("{open_f}") AS "open", mean("{high_f}") AS "high", '
                 'mean("{low_f}") AS "low", mean("{close_f}") AS "close", '
                 'mean("{vol_f}") AS "volume" '
                 'FROM "{dataname}" '
-                'WHERE time {begin} '
+                'WHERE time {begin} AND time {end}'
                 'GROUP BY time({timeframe}) fill(none)').format(
                     open_f=self.p.open, high_f=self.p.high,
                     low_f=self.p.low, close_f=self.p.close,
                     vol_f=self.p.volume,
-                    timeframe=tf, begin=st, dataname=self.p.dataname)
+                    timeframe=tf, begin=st, end=et, dataname=self.p.dataname)
 
         try:
             dbars = list(self.ndb.query(qstr).get_points())
